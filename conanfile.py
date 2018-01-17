@@ -16,6 +16,8 @@ class SDL2Conan(ConanFile):
     generators = ['cmake']
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False],
+               "iconv": [True, False],
+               "gles": [True, False],
                "directx": [True, False],
                "alsa": [True, False],
                "jack": [True, False],
@@ -35,12 +37,14 @@ class SDL2Conan(ConanFile):
                "mir": [True, False],
                "directfb": [True, False]}
     default_options = ("shared=False",
-                       "directx=True",
-                       "alsa=True",
-                       "jack=True",
-                       "pulse=True",
-                       "nas=True",
-                       "esd=True",
+                       "iconv=False",
+                       "gles=False",
+                       "directx=False",
+                       "alsa=False",
+                       "jack=False",
+                       "pulse=False",
+                       "nas=False",
+                       "esd=False",
                        "arts=False",
                        "x11=True",
                        "xcursor=True",
@@ -52,7 +56,7 @@ class SDL2Conan(ConanFile):
                        "xvm=True",
                        "wayland=False",
                        "mir=False",
-                       "directfb=True")
+                       "directfb=False")
 
     def run(self, command, output=True, cwd=None):
         if self.settings.compiler == 'Visual Studio':
@@ -65,7 +69,8 @@ class SDL2Conan(ConanFile):
         self.build_requires("ninja_installer/[>=1.8.2]@bincrafters/stable")
 
     def requirements(self):
-        self.requires.add("libiconv/[>=1.15]@bincrafters/stable")
+        if self.options.iconv == True:
+            self.requires.add("libiconv/[>=1.15]@bincrafters/stable")
 
     def system_requirements(self):
         if self.settings.os == "Linux" and tools.os_info.is_linux:
@@ -169,6 +174,7 @@ class SDL2Conan(ConanFile):
             cmake.definitions['HAVE_LIBC'] = True
         cmake.definitions['SDL_SHARED'] = self.options.shared
         cmake.definitions['SDL_STATIC'] = not self.options.shared
+        cmake.definitions['VIDEO_OPENGLES'] = self.options.gles
         if self.settings.os == "Linux":
             cmake.definitions['ALSA'] = self.options.alsa
             cmake.definitions['JACK'] = self.options.jack
